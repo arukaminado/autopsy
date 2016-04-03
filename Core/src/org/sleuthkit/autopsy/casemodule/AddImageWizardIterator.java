@@ -54,7 +54,10 @@ class AddImageWizardIterator implements WizardDescriptor.Iterator<WizardDescript
             AddImageWizardChooseDataSourcePanel dsPanel = new AddImageWizardChooseDataSourcePanel(progressPanel);
             AddImageWizardIngestConfigPanel ingestConfigPanel = new AddImageWizardIngestConfigPanel(dsPanel, action, progressPanel);
 
+            AddImageWizardConfigureEncryptionPanel encryptionPanel = new AddImageWizardConfigureEncryptionPanel(dsPanel);
+
             panels.add(dsPanel);
+            panels.add(encryptionPanel);
             panels.add(ingestConfigPanel);
             panels.add(progressPanel);
 
