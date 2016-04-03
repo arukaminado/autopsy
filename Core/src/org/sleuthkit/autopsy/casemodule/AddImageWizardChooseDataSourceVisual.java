@@ -168,6 +168,9 @@ final class AddImageWizardChooseDataSourceVisual extends JPanel {
         updateUI(null);
     }
 
+    public String getPath() { 
+        return ((ImageFilePanel)currentPanel).getContentPaths();
+    }
     /**
      * Returns the currently selected DS Processor
      *

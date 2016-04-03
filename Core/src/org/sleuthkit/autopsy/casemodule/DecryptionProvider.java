@@ -6,8 +6,9 @@
 package org.sleuthkit.autopsy.casemodule;
 
 import javax.swing.JPanel;
+import org.sleuthkit.autopsy.corecomponentinterfaces.DataSourceProcessor;
 
-public interface DecryptionProvider {
+public interface DecryptionProvider extends DataSourceProcessor {
 
 	/**
 	 *

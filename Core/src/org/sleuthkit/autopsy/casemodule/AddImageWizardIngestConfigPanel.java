@@ -69,11 +69,13 @@ class AddImageWizardIngestConfigPanel implements WizardDescriptor.Panel<WizardDe
 
     private DataSourceProcessor dsProcessor;
     private boolean cancelled;
+    private final AddImageWizardConfigureEncryptionPanel decryptionPanel;
 
-    AddImageWizardIngestConfigPanel(AddImageWizardChooseDataSourcePanel dsPanel, AddImageAction action, AddImageWizardAddingProgressPanel proPanel) {
+    AddImageWizardIngestConfigPanel(AddImageWizardChooseDataSourcePanel dsPanel, AddImageWizardConfigureEncryptionPanel decryptionPanel, AddImageAction action, AddImageWizardAddingProgressPanel proPanel) {
         this.addImageAction = action;
         this.progressPanel = proPanel;
         this.dataSourcePanel = dsPanel;
+        this.decryptionPanel = decryptionPanel;
 
         IngestJobSettings ingestJobSettings = new IngestJobSettings(AddImageWizardIngestConfigPanel.class.getCanonicalName());
         showWarnings(ingestJobSettings);
@@ -252,6 +254,13 @@ class AddImageWizardIngestConfigPanel implements WizardDescriptor.Panel<WizardDe
 
         // Kick off the DSProcessor 
         dsProcessor.run(progressPanel.getDSPProgressMonitorImpl(), cbObj);
+
+        // get the DSProcessors for DecryptedVolumes
+        List<DecryptionProvider> decryptionProviders = decryptionPanel.getDecryptionProvider();
+        
+        for(DecryptionProvider x : decryptionProviders) { 
+            x.run(progressPanel.getDSPProgressMonitorImpl(), cbObj);
+        }
 
     }
 

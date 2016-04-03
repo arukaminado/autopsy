@@ -53,7 +53,6 @@ public class ConfigureBitlockerPanel extends JPanel {
 			return false;
 		}
 		errorLabel.setVisible(false);
-		System.out.println(javax.swing.SwingUtilities.isEventDispatchThread());
 		String str = recoveryKeyTextfield.getText();
 		if (radioButtenBEK.isSelected()) {
 			if (new File(str).exists()) {
