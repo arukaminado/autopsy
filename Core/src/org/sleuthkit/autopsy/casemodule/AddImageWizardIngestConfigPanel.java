@@ -24,6 +24,7 @@ import java.awt.Component;
 import java.awt.Window;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import javax.swing.JButton;
@@ -172,7 +173,7 @@ class AddImageWizardIngestConfigPanel implements WizardDescriptor.Panel<WizardDe
 
         // Start processing the data source by handing it off to the selected DSP, 
         // so it gets going in the background while the user is still picking the Ingest modules
-        startDataSourceProcessing(settings);
+       // startDataSourceProcessing(settings);
     }
 
     /**
@@ -190,6 +191,7 @@ class AddImageWizardIngestConfigPanel implements WizardDescriptor.Panel<WizardDe
         ingestJobSettings.save();
         showWarnings(ingestJobSettings);
 
+         startDataSourceProcessing(settings);
         // Start ingest if it hasn't already been started
         readyToIngest = true;
         startIngest();
@@ -211,56 +213,30 @@ class AddImageWizardIngestConfigPanel implements WizardDescriptor.Panel<WizardDe
      * and we haven't already ingested.
      */
     private void startIngest() {
-        if (!newContents.isEmpty() && readyToIngest && !ingested) {
+        
+        /*if (!newContents.isEmpty() && readyToIngest && !ingested) {
             ingested = true;
             IngestManager.getInstance().queueIngestJob(newContents, ingestJobSettingsPanel.getSettings());
             progressPanel.setStateFinished();
-        }
+        }*/
     }
 
     /**
      * Starts the Data source processing by kicking off the selected
      * DataSourceProcessor
      */
+    private List<DataSourceProcessor> allDataSourceProcessors;
+    private int dspIndex = 0;
+
     private void startDataSourceProcessing(WizardDescriptor settings) {
-        final UUID dataSourceId = UUID.randomUUID();
 
-        // Add a cleanup task to interrupt the background process if the
-        // wizard exits while the background process is running.
-        cleanupTask = addImageAction.new CleanupTask() {
-            @Override
-            void cleanup() throws Exception {
-                cancelDataSourceProcessing(dataSourceId);
-                cancelled = true;
-            }
-        };
+        this.allDataSourceProcessors = getAllDSProcessors();
 
-        cleanupTask.enable();
+        newContents.clear();
 
-        // get the selected DSProcessor
-        dsProcessor = dataSourcePanel.getComponent().getCurrentDSProcessor();
-
-        new Thread(() -> {
-            Case.getCurrentCase().notifyAddingDataSource(dataSourceId);
-        }).start();
-        DataSourceProcessorCallback cbObj = new DataSourceProcessorCallback() {
-            @Override
-            public void doneEDT(DataSourceProcessorCallback.DataSourceProcessorResult result, List<String> errList, List<Content> contents) {
-                dataSourceProcessorDone(dataSourceId, result, errList, contents);
-            }
-        };
+        processNextDataSource();
 
         progressPanel.setStateStarted();
-
-        // Kick off the DSProcessor 
-        dsProcessor.run(progressPanel.getDSPProgressMonitorImpl(), cbObj);
-
-        // get the DSProcessors for DecryptedVolumes
-        List<DecryptionProvider> decryptionProviders = decryptionPanel.getDecryptionProvider();
-        
-        for(DecryptionProvider x : decryptionProviders) { 
-            x.run(progressPanel.getDSPProgressMonitorImpl(), cbObj);
-        }
 
     }
 
@@ -271,23 +247,7 @@ class AddImageWizardIngestConfigPanel implements WizardDescriptor.Panel<WizardDe
         dsProcessor.cancel();
     }
 
-    /*
-     * Callback for the data source processor. Invoked by the DSP on the EDT
-     * thread, when it finishes processing the data source.
-     */
-    private void dataSourceProcessorDone(UUID dataSourceId, DataSourceProcessorCallback.DataSourceProcessorResult result, List<String> errList, List<Content> contents) {
-        // disable the cleanup task
-        cleanupTask.disable();
-
-        // Get attention for the process finish
-        java.awt.Toolkit.getDefaultToolkit().beep(); //BEEP!
-        AddImageWizardAddingProgressVisual panel = progressPanel.getComponent();
-        if (panel != null) {
-            Window w = SwingUtilities.getWindowAncestor(panel);
-            if (w != null) {
-                w.toFront();
-            }
-        }
+    private void alldataSourceProcessorsDone(DataSourceProcessorCallback.DataSourceProcessorResult result, List<String> errList) {
         // Tell the panel we're done
         progressPanel.setStateFinished();
 
@@ -310,6 +270,27 @@ class AddImageWizardIngestConfigPanel implements WizardDescriptor.Panel<WizardDe
             progressPanel.addErrors(err, critErr);
         }
 
+        startIngest();
+    }
+
+    /*
+     * Callback for the data source processor. Invoked by the DSP on the EDT
+     * thread, when it finishes processing the data source.
+     */
+    private void dataSourceProcessorDone(UUID dataSourceId, DataSourceProcessorCallback.DataSourceProcessorResult result, List<String> errList, List<Content> contents) {
+        // disable the cleanup task
+        cleanupTask.disable();
+
+        // Get attention for the process finish
+        java.awt.Toolkit.getDefaultToolkit().beep(); //BEEP!
+        AddImageWizardAddingProgressVisual panel = progressPanel.getComponent();
+        if (panel != null) {
+            Window w = SwingUtilities.getWindowAncestor(panel);
+            if (w != null) {
+                w.toFront();
+            }
+        }
+
         //notify the UI of the new content added to the case
         new Thread(() -> {
             if (!contents.isEmpty()) {
@@ -320,13 +301,56 @@ class AddImageWizardIngestConfigPanel implements WizardDescriptor.Panel<WizardDe
         }).start();
 
         if (!cancelled) {
-            newContents.clear();
             newContents.addAll(contents);
             progressPanel.setStateStarted();
-            startIngest();
         } else {
             cancelled = false;
         }
 
+    }
+
+    private List<DataSourceProcessor> getAllDSProcessors() {
+        List<DataSourceProcessor> result = new LinkedList<>();
+
+        result.add(dataSourcePanel.getComponent().getCurrentDSProcessor());
+        for (DataSourceProcessor x : decryptionPanel.getDecryptionProvider()) {
+            result.add(x);
+        }
+        return result;
+    }
+
+    private void processNextDataSource() {
+        UUID dataSourceId = UUID.randomUUID();
+        // Add a cleanup task to interrupt the background process if the
+        // wizard exits while the background process is running.
+        cleanupTask = addImageAction.new CleanupTask() {
+            @Override
+            void cleanup() throws Exception {
+                cancelDataSourceProcessing(dataSourceId);
+                cancelled = true;
+            }
+        };
+
+        cleanupTask.enable();
+
+        new Thread(() -> {
+            Case.getCurrentCase().notifyAddingDataSource(dataSourceId);
+        }).start();
+
+        DataSourceProcessorCallback cbObj = new DataSourceProcessorCallback() {
+            @Override
+            public void doneEDT(DataSourceProcessorCallback.DataSourceProcessorResult result, List<String> errList, List<Content> contents) {
+                dataSourceProcessorDone(dataSourceId, result, errList, contents);
+                if (dspIndex == allDataSourceProcessors.size()) {
+                    alldataSourceProcessorsDone(result, errList);
+                } else {
+                    processNextDataSource();
+                }
+            }
+        };
+
+        // Kick off the DSProcessor 
+        allDataSourceProcessors.get(dspIndex).run(progressPanel.getDSPProgressMonitorImpl(), cbObj);
+        dspIndex++;
     }
 }

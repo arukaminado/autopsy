@@ -43,7 +43,7 @@ public class AutopsyExceptionHandler extends Handler {
     public AutopsyExceptionHandler() {
         super();
 
-        this.setLevel(Level.SEVERE);
+        this.setLevel(Level.INFO);
         /*
          * if (buildType == Version.Type.DEVELOPMENT) //for dev builds, show
          * dialogs for WARNING and above this.setLevel(Level.WARNING); else
