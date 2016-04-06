@@ -6,30 +6,33 @@
 package org.sleuthkit.autopsy.casemodule;
 
 import javax.swing.JPanel;
+import org.sleuthkit.autopsy.casemodule.AddImageWizardChooseDataSourceVisual.DataSourceConfiguration;
 import org.sleuthkit.autopsy.corecomponentinterfaces.DataSourceProcessor;
 
 public interface DecryptionProvider extends DataSourceProcessor {
 
-	/**
-	 *
-	 * @param volumeMetaData
-	 */
-	public void setVolumeMetaData(VolumeMetaData volumeMetaData);
+    /**
+     *
+     * @param volumeMetaData
+     */
+    public void setVolumeMetaData(VolumeMetaData volumeMetaData);
 
-	public void start();
+    public void setDataSourceConfiguration(DataSourceConfiguration dataSourceConfiguration);
 
-	public void stop();
+    public void start();
 
-	public String getRawDeviceLocation();
+    public void stop();
 
-	public String getName();
+    public String getRawDeviceLocation();
 
-	public JPanel getPanel();
+    public String getName();
 
-	/**
-	 *
-	 * @param volumeMetaData
-	 * @return
-	 */
-	public boolean matchesVolume(VolumeMetaData volumeMetaData);
+    public JPanel getPanel();
+
+    /**
+     *
+     * @param volumeMetaData
+     * @return
+     */
+    public boolean matchesVolume(VolumeMetaData volumeMetaData);
 }

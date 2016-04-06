@@ -168,14 +168,43 @@ final class AddImageWizardChooseDataSourceVisual extends JPanel {
         updateUI(null);
     }
 
-    public String getPath() { 
-        return ((ImageFilePanel)currentPanel).getContentPaths();
+    public DataSourceConfiguration getDataSourceConfiguration() {
+        DataSourceConfiguration dataSourceConfiguration = new DataSourceConfiguration();
+        if (currentPanel.getClass() == ImageFilePanel.class) {
+            ImageFilePanel imageFilePanel = (ImageFilePanel) currentPanel;
+            dataSourceConfiguration.path = imageFilePanel.getContentPaths();
+            dataSourceConfiguration.timeZone = imageFilePanel.getTimeZone();
+            dataSourceConfiguration.getOrphanFiles = imageFilePanel.getNoFatOrphans();
+            dataSourceConfiguration.type = DataSourceType.Image;
+            return dataSourceConfiguration;
+        } else if (currentPanel.getClass() == LocalDiskPanel.class) {
+            LocalDiskPanel localDiskPanel = (LocalDiskPanel) currentPanel;
+            dataSourceConfiguration.path = localDiskPanel.getContentPaths();
+            dataSourceConfiguration.timeZone = localDiskPanel.getTimeZone();
+            dataSourceConfiguration.getOrphanFiles = localDiskPanel.getNoFatOrphans();
+            dataSourceConfiguration.type = DataSourceType.Image;
+        }
+        return dataSourceConfiguration;
     }
+
+    public enum DataSourceType {
+        Image, Device, Files, Invalid
+    }
+
+    class DataSourceConfiguration {
+
+        public DataSourceType type = DataSourceType.Invalid;
+        public String path;
+        public String timeZone;
+        public boolean getOrphanFiles;
+        public boolean kalr;
+    }
+
     /**
      * Returns the currently selected DS Processor
      *
      * @return DataSourceProcessor the DataSourceProcessor corresponding to the
-     *         data source type selected in the combobox
+     * data source type selected in the combobox
      */
     protected DataSourceProcessor getCurrentDSProcessor() {
         // get the type of the currently selected panel and then look up 

@@ -49,11 +49,10 @@ public class AddImageWizardConfigureEncryptionPanel implements WizardDescriptor.
     @Override
     public Component getComponent() {
         WizardDescriptor settings = null;
-        if (!lastPath.equals(dsPanel.getComponent().getPath())) {
-            lastPath = dsPanel.getComponent().getPath();
-            List<DecryptionProvider> cr = getEncryptionConfigurationPanelsForImage(lastPath);
-            decryptionProviders = cr;
-            visual.updateProviderList(cr);
+        if (!lastPath.equals(dsPanel.getComponent().getDataSourceConfiguration())) {
+            AddImageWizardChooseDataSourceVisual.DataSourceConfiguration dataSourceConfiguration = dsPanel.getComponent().getDataSourceConfiguration();
+            decryptionProviders = getEncryptionProviderForDataSource(dataSourceConfiguration);
+            visual.updateProviderList(decryptionProviders);
         }
 
         return visual;
@@ -100,28 +99,29 @@ public class AddImageWizardConfigureEncryptionPanel implements WizardDescriptor.
         }
     }
 
-    private List<DecryptionProvider> getEncryptionConfigurationPanelsForImage(String contentPath) {
+    private List<DecryptionProvider> getEncryptionProviderForDataSource(AddImageWizardChooseDataSourceVisual.DataSourceConfiguration dataSourceConfiguration) {
         List<DecryptionProvider> result = new LinkedList<>();
 
-        if (!new File(contentPath).isFile()) {
+        if (!new File(dataSourceConfiguration.path).isFile()) {
             return result;
         }
-        List<VolumeMetaData> karl = getVolumeMetaData(contentPath);
+        List<VolumeMetaData> volumeMetaDataList = getVolumeMetaData(dataSourceConfiguration.path);
 
-        for (VolumeMetaData m : karl) {
-            DecryptionProvider u = AddImageWizardConfigureEncryptionPanel.this.getDecryptionProvider(m);
-            if (u != null) {
-                result.add(u);
+        for (VolumeMetaData volumeMetaData : volumeMetaDataList) {
+            DecryptionProvider decryptionProvider = getDecryptionProvider(volumeMetaData, dataSourceConfiguration);
+            if (decryptionProvider != null) {
+                result.add(decryptionProvider);
             }
         }
 
         return result;
     }
 
-    private DecryptionProvider getDecryptionProvider(VolumeMetaData volumeMetaData) {
+    private DecryptionProvider getDecryptionProvider(VolumeMetaData volumeMetaData, AddImageWizardChooseDataSourceVisual.DataSourceConfiguration dataSourceConfiguration) {
         for (DecryptionProvider decryptionProvider : Lookup.getDefault().lookupAll(DecryptionProvider.class)) {
             if (decryptionProvider.matchesVolume(volumeMetaData)) {
                 decryptionProvider.setVolumeMetaData(volumeMetaData);
+                decryptionProvider.setDataSourceConfiguration(dataSourceConfiguration);
                 return decryptionProvider;
             }
         }
