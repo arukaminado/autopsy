@@ -5,8 +5,12 @@
  */
 package org.sleuthkit.autopsy.ingest;
 
-import java.util.LinkedList;
+import org.openide.util.Exceptions;
+import org.sleuthkit.autopsy.casemodule.Case;
+import org.sleuthkit.autopsy.casemodule.services.TagsManager;
 import org.sleuthkit.datamodel.AbstractFile;
+import org.sleuthkit.datamodel.TagName;
+import org.sleuthkit.datamodel.TskCoreException;
 
 /**
  *
@@ -14,24 +18,40 @@ import org.sleuthkit.datamodel.AbstractFile;
  */
 public class DummyIngestModule implements FileIngestModule {
 
-	LinkedList<String> a;
+    TagsManager tagsManager;
+    TagName holz;
 
-	@Override
-	public ProcessResult process(AbstractFile file) {
-		if (file.getNameExtension().equals("exe")) {
-			a.add(file.getName());
-		}
-		return ProcessResult.OK;
-	}
+    @Override
+    public ProcessResult process(AbstractFile file) {
+        try {
+            if (file.getNameExtension().equals("exe")) {
+                try {
+                    tagsManager.addContentTag(file, holz);
+                } catch (TskCoreException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
 
-	@Override
-	public void shutDown() {
-		System.err.println(a);
-	}
+            }
+        } catch (NullPointerException e) {
+            // Because Null pointer Exceptions happen. 
+        }
+        return ProcessResult.OK;
+    }
 
-	@Override
-	public void startUp(IngestJobContext context) throws IngestModuleException {
-		a = new LinkedList<String>();
-	}
+    @Override
+    public void shutDown() {
+    }
+
+    @Override
+    public void startUp(IngestJobContext context) throws IngestModuleException {
+        tagsManager = Case.getCurrentCase().getServices().getTagsManager();
+        try {
+            holz = tagsManager.addTagName("exeFiles", "All Files ending wiht .exe", TagName.HTML_COLOR.LIME);
+        } catch (TagsManager.TagNameAlreadyExistsException ex) {
+            //
+        } catch (TskCoreException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+    }
 
 }
