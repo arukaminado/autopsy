@@ -19,11 +19,7 @@ public interface DecryptionProvider extends DataSourceProcessor {
 
     public void setDataSourceConfiguration(DataSourceConfiguration dataSourceConfiguration);
 
-    public void start();
 
-    public void stop();
-
-    public String getRawDeviceLocation();
 
     public String getName();
 
