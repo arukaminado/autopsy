@@ -18,15 +18,16 @@ import org.sleuthkit.datamodel.TskCoreException;
  */
 public class DummyIngestModule implements FileIngestModule {
 
+    private static final String tagNameString = "exeFiles";
     TagsManager tagsManager;
-    TagName holz;
+    TagName exeTag;
 
     @Override
     public ProcessResult process(AbstractFile file) {
         try {
             if (file.getNameExtension().equals("exe")) {
                 try {
-                    tagsManager.addContentTag(file, holz);
+                    tagsManager.addContentTag(file, exeTag);
                 } catch (TskCoreException ex) {
                     Exceptions.printStackTrace(ex);
                 }
@@ -46,9 +47,18 @@ public class DummyIngestModule implements FileIngestModule {
     public void startUp(IngestJobContext context) throws IngestModuleException {
         tagsManager = Case.getCurrentCase().getServices().getTagsManager();
         try {
-            holz = tagsManager.addTagName("exeFiles", "All Files ending wiht .exe", TagName.HTML_COLOR.LIME);
+            exeTag = tagsManager.addTagName(tagNameString, "All Files ending wiht .exe", TagName.HTML_COLOR.LIME);
         } catch (TagsManager.TagNameAlreadyExistsException ex) {
-            //
+            try {
+                for (TagName tagName : tagsManager.getAllTagNames()) {
+                    if (tagName.getDisplayName().equals(tagNameString)) {
+                        exeTag = tagName;
+                        return;
+                    }
+                }
+            } catch (TskCoreException ex1) {
+                Exceptions.printStackTrace(ex1);
+            }
         } catch (TskCoreException ex) {
             Exceptions.printStackTrace(ex);
         }
