@@ -19,7 +19,7 @@ public interface DecryptionProvider extends DataSourceProcessor {
 
     public void setDataSourceConfiguration(DataSourceConfiguration dataSourceConfiguration);
 
-
+    public DecryptionProvider decryptionProviderFactory(VolumeMetaData volumeMetaData, String key, int keyType, String deviceId);
 
     public String getName();
 
