@@ -18,7 +18,6 @@
  */
 package org.sleuthkit.autopsy.casemodule;
 
-import org.openide.util.NbBundle;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Window;
@@ -33,12 +32,13 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeListener;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
-import org.sleuthkit.datamodel.Content;
-import org.sleuthkit.autopsy.corecomponentinterfaces.DataSourceProcessorCallback;
+import org.openide.util.NbBundle;
 import org.sleuthkit.autopsy.corecomponentinterfaces.DataSourceProcessor;
+import org.sleuthkit.autopsy.corecomponentinterfaces.DataSourceProcessorCallback;
 import org.sleuthkit.autopsy.ingest.IngestJobSettings;
 import org.sleuthkit.autopsy.ingest.IngestJobSettingsPanel;
 import org.sleuthkit.autopsy.ingest.IngestManager;
+import org.sleuthkit.datamodel.Content;
 
 /**
  * second panel of add image wizard, allows user to configure ingest modules.
@@ -73,6 +73,7 @@ class AddImageWizardIngestConfigPanel implements WizardDescriptor.Panel<WizardDe
     private final AddImageWizardConfigureEncryptionPanel decryptionPanel;
 
     boolean dataSourceProcessingStarted = false;
+    List<String> errorList = new LinkedList<>();
 
     AddImageWizardIngestConfigPanel(AddImageWizardChooseDataSourcePanel dsPanel, AddImageWizardConfigureEncryptionPanel decryptionPanel, AddImageAction action, AddImageWizardAddingProgressPanel proPanel) {
         this.addImageAction = action;
@@ -253,7 +254,7 @@ class AddImageWizardIngestConfigPanel implements WizardDescriptor.Panel<WizardDe
         dsProcessor.cancel();
     }
 
-    private void alldataSourceProcessorsDone(DataSourceProcessorCallback.DataSourceProcessorResult result, List<String> errList) {
+    private void alldataSourceProcessorsDone(DataSourceProcessorCallback.DataSourceProcessorResult result) {
         // Tell the panel we're done
         progressPanel.setStateFinished();
 
@@ -271,7 +272,7 @@ class AddImageWizardIngestConfigPanel implements WizardDescriptor.Panel<WizardDe
         if (result == DataSourceProcessorCallback.DataSourceProcessorResult.CRITICAL_ERRORS) {
             critErr = true;
         }
-        for (String err : errList) {
+        for (String err : this.errorList) {
             //  TBD: there probably should be an error level for each error
             progressPanel.addErrors(err, critErr);
         }
@@ -312,6 +313,8 @@ class AddImageWizardIngestConfigPanel implements WizardDescriptor.Panel<WizardDe
         } else {
             cancelled = false;
         }
+        
+        this.errorList.addAll(errList);
 
     }
 
@@ -327,10 +330,10 @@ class AddImageWizardIngestConfigPanel implements WizardDescriptor.Panel<WizardDe
 
     private void processNextDataSource() {
         UUID dataSourceId = UUID.randomUUID();
-        
+
         cleanupTask = getCleanUpTask(dataSourceId);
         cleanupTask.enable();
-        
+
         new Thread(() -> {
             Case.getCurrentCase().notifyAddingDataSource(dataSourceId);
         }).start();
@@ -347,10 +350,10 @@ class AddImageWizardIngestConfigPanel implements WizardDescriptor.Panel<WizardDe
         // wizard exits while the background process is running.
         return addImageAction.new CleanupTask() {
             @Override
-                    void cleanup() throws Exception {
-                        cancelDataSourceProcessing(dataSourceId);
-                        cancelled = true;
-                    }
+            void cleanup() throws Exception {
+                cancelDataSourceProcessing(dataSourceId);
+                cancelled = true;
+            }
         };
     }
 
@@ -360,7 +363,7 @@ class AddImageWizardIngestConfigPanel implements WizardDescriptor.Panel<WizardDe
             public void doneEDT(DataSourceProcessorCallback.DataSourceProcessorResult result, List<String> errList, List<Content> contents) {
                 dataSourceProcessorDone(dataSourceId, result, errList, contents);
                 if (dspIndex == allDataSourceProcessors.size()) {
-                    alldataSourceProcessorsDone(result, errList);
+                    alldataSourceProcessorsDone(result);
                 } else {
                     processNextDataSource();
                 }
