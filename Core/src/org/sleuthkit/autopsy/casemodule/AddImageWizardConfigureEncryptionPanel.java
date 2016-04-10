@@ -105,7 +105,7 @@ public class AddImageWizardConfigureEncryptionPanel implements WizardDescriptor.
         if (!new File(dataSourceConfiguration.path).isFile()) {
             return result;
         }
-        List<VolumeMetaData> volumeMetaDataList = getVolumeMetaData(dataSourceConfiguration.path);
+        List<VolumeMetaData> volumeMetaDataList = VolumeMetaData.getVolumeMetaData(dataSourceConfiguration.path);
 
         for (VolumeMetaData volumeMetaData : volumeMetaDataList) {
             DecryptionProvider decryptionProvider = getDecryptionProvider(volumeMetaData, dataSourceConfiguration);
@@ -126,38 +126,6 @@ public class AddImageWizardConfigureEncryptionPanel implements WizardDescriptor.
             }
         }
         return null;
-    }
-
-    private List<VolumeMetaData> getVolumeMetaData(String image) {
-        String[] imageArray = {image};
-
-        List<VolumeMetaData> result = new LinkedList<>();
-
-        try {
-            long handle = SleuthkitJNI.openImage(imageArray);
-            long vsHandle = SleuthkitJNI.openVs(handle, 0);
-
-            for (int volumeIndex = 0; volumeIndex < 5; volumeIndex++) {
-                VolumeMetaData volumeMetaData = new VolumeMetaData();
-                volumeMetaData.setPartitionNumber(volumeIndex);
-
-                volumeMetaData.setOffSet(SleuthkitJNI.getVolOffset(vsHandle, volumeIndex));
-
-                long volumePointer = SleuthkitJNI.openVsPart(vsHandle, volumeIndex);
-
-                byte readBuffer[] = new byte[512];
-                long c = SleuthkitJNI.readVsPart(volumePointer, readBuffer, 0, 512);
-                volumeMetaData.setFirstSector(readBuffer);
-
-                volumeMetaData.setPath(image);
-
-                result.add(volumeMetaData);
-            }
-
-        } catch (TskCoreException ex) {
-            Exceptions.printStackTrace(ex);
-        }
-        return result;
     }
 
     @Override
