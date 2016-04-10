@@ -6,6 +6,7 @@
 package org.sleuthkit.autopsy.casemodule;
 
 import javax.swing.JPanel;
+import org.openide.util.Lookup;
 import org.sleuthkit.autopsy.casemodule.AddImageWizardChooseDataSourceVisual.DataSourceConfiguration;
 import org.sleuthkit.autopsy.corecomponentinterfaces.DataSourceProcessor;
 
@@ -25,10 +26,28 @@ public interface DecryptionProvider extends DataSourceProcessor {
 
     public JPanel getPanel();
 
+    public void start();
+    
+    public void stop();
     /**
      *
      * @param volumeMetaData
      * @return
      */
     public boolean matchesVolume(VolumeMetaData volumeMetaData);
+
+
+    /**
+     *
+     * @param className
+     * @return
+     */
+    public static DecryptionProvider getInstaceForClassString(String className) {
+        for (DecryptionProvider decryptionProvider : Lookup.getDefault().lookupAll(DecryptionProvider.class)) {
+            if(className.equals(decryptionProvider.getClass().toString())) { 
+                return decryptionProvider;
+            }
+        }
+        return null;
+    }
 }
