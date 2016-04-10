@@ -16,14 +16,10 @@ import java.util.List;
 import java.util.Set;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.apache.commons.lang3.ObjectUtils;
 import org.openide.WizardDescriptor;
-import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
-import org.sleuthkit.autopsy.corecomponentinterfaces.DataSourceProcessor;
-import org.sleuthkit.datamodel.SleuthkitJNI;
-import org.sleuthkit.datamodel.TskCoreException;
+import org.sleuthkit.autopsy.casemodule.AddImageWizardChooseDataSourceVisual.DataSourceType;
 
 public class AddImageWizardConfigureEncryptionPanel implements WizardDescriptor.Panel<WizardDescriptor>, PropertyChangeListener {
 
@@ -49,8 +45,9 @@ public class AddImageWizardConfigureEncryptionPanel implements WizardDescriptor.
     @Override
     public Component getComponent() {
         WizardDescriptor settings = null;
-        if (!lastPath.equals(dsPanel.getComponent().getDataSourceConfiguration())) {
-            AddImageWizardChooseDataSourceVisual.DataSourceConfiguration dataSourceConfiguration = dsPanel.getComponent().getDataSourceConfiguration();
+        AddImageWizardChooseDataSourceVisual.DataSourceConfiguration dataSourceConfiguration = dsPanel.getComponent().getDataSourceConfiguration();
+
+        if (!lastPath.equals(dataSourceConfiguration.path) && (dataSourceConfiguration.type == DataSourceType.Image || dataSourceConfiguration.type == DataSourceType.Device)) {
             decryptionProviders = getEncryptionProviderForDataSource(dataSourceConfiguration);
             visual.updateProviderList(decryptionProviders);
         }
