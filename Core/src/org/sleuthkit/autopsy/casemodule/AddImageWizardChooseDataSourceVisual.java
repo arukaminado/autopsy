@@ -127,6 +127,9 @@ final class AddImageWizardChooseDataSourceVisual extends JPanel {
 
         for (DataSourceProcessor dsProcessor : Lookup.getDefault().lookupAll(DataSourceProcessor.class)) {
 
+            if (dsProcessor instanceof DecryptionProvider) {
+                continue;
+            }
             if (!datasourceProcessorsMap.containsKey(dsProcessor.getDataSourceType())) {
                 datasourceProcessorsMap.put(dsProcessor.getDataSourceType(), dsProcessor);
             } else {
