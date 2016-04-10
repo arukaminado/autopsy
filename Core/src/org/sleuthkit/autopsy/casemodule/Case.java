@@ -102,15 +102,8 @@ public class Case implements SleuthkitCase.ErrorObserver {
     private static List<DecryptionProvider> activeDecryptionProvider = new LinkedList<>();
 
     private static boolean tryToOpenDecryptionProvider(SleuthkitCase db, String path) {
-        String[] folderNames = path.split("/");
-        String deviceId = folderNames[folderNames.length - 2];
-        try {
-            UUID uuid = UUID.fromString(deviceId);
-            //do something
-        } catch (IllegalArgumentException exception) {
-            return false;
-        }
-        String queryStr = "select * from decryption_provider_information where device_id = \"" + deviceId + "\"";
+        String deviceId = getDeviceIdFromPath(path);
+        String queryStr = "SELECT * from decryption_provider_information WHERE device_id = \"" + deviceId + "\"";
         try {
             ResultSet resultSet = db.executeQuery(queryStr).getResultSet();
             if (resultSet.next()) {
@@ -119,11 +112,10 @@ public class Case implements SleuthkitCase.ErrorObserver {
                 String encryptedPath = resultSet.getString(3);
                 int keyType = resultSet.getInt(5);
                 int volume_id = resultSet.getInt(6);
-                DecryptionProvider x = DecryptionProvider.getInstaceForClassString(decryptionProviderClassName);
-                VolumeMetaData volumeMetaData = VolumeMetaData.getVolumeMetaData(encryptedPath).get(volume_id - 1);
-                DecryptionProvider inst = x.decryptionProviderFactory(volumeMetaData, key, keyType, deviceId);
-                inst.start();
-                activeDecryptionProvider.add(inst);
+
+                DecryptionProvider decryptionProvider = getDecryptionProvider(decryptionProviderClassName, encryptedPath, volume_id, key, keyType, deviceId);
+                decryptionProvider.start();
+                activeDecryptionProvider.add(decryptionProvider);
                 return true;
             }
         } catch (TskCoreException | SQLException ex) {
@@ -131,6 +123,21 @@ public class Case implements SleuthkitCase.ErrorObserver {
         }
         return false;
     }
+
+    private static DecryptionProvider getDecryptionProvider(String decryptionProviderClassName, String encryptedPath, int volume_id, String key, int keyType, String deviceId) {
+        DecryptionProvider emptyInstance = DecryptionProvider.getInstaceForClassString(decryptionProviderClassName);
+        VolumeMetaData volumeMetaData = VolumeMetaData.getVolumeMetaData(encryptedPath).get(volume_id - 1);
+        return emptyInstance.decryptionProviderFactory(volumeMetaData, key, keyType, deviceId);
+    }
+
+    private static String getDeviceIdFromPath(String path) {
+        String[] folderNames = path.split("/");
+        if (folderNames.length < 2) {
+            return "";
+        }
+        return folderNames[folderNames.length - 2];
+    }
+
     volatile private IntervalErrorReportData tskErrorReporter = null;
     private static final int MIN_SECONDS_BETWEEN_ERROR_REPORTS = 60; // No less than 60 seconds between warnings for errors
     private static final int MAX_SANITIZED_NAME_LENGTH = 47;
