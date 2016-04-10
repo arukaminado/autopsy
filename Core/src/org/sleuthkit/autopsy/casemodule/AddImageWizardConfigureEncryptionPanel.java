@@ -118,9 +118,7 @@ public class AddImageWizardConfigureEncryptionPanel implements WizardDescriptor.
     private DecryptionProvider getDecryptionProvider(VolumeMetaData volumeMetaData, AddImageWizardChooseDataSourceVisual.DataSourceConfiguration dataSourceConfiguration) {
         for (DecryptionProvider decryptionProvider : Lookup.getDefault().lookupAll(DecryptionProvider.class)) {
             if (decryptionProvider.matchesVolume(volumeMetaData)) {
-                decryptionProvider.setVolumeMetaData(volumeMetaData);
-                decryptionProvider.setDataSourceConfiguration(dataSourceConfiguration);
-                return decryptionProvider;
+                return decryptionProvider.decryptionProviderFactory(volumeMetaData, dataSourceConfiguration);
             }
         }
         return null;

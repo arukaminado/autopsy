@@ -14,37 +14,50 @@ public interface DecryptionProvider extends DataSourceProcessor {
 
     /**
      *
-     * @param volumeMetaData
+     * @param volumeMetaData contains all required volume information
+     * @param key required key for unlocking the volume
+     * @param keyType differences between different key types for one
+     * DecryptionProvider
+     * @param deviceId identifier stored in Sleuthkit Case
+     * @return new instance of DecryptionProvider with all information to unlock
+     * the volume
      */
-    public void setVolumeMetaData(VolumeMetaData volumeMetaData);
-
-    public void setDataSourceConfiguration(DataSourceConfiguration dataSourceConfiguration);
-
     public DecryptionProvider decryptionProviderFactory(VolumeMetaData volumeMetaData, String key, int keyType, String deviceId);
 
-    public String getName();
+    /**
+     *
+     * @param volumeMetaData contains all required volume information
+     * @param dataSourceConfiguration contains information to process a new
+     * data-source
+     * @return new instance of DecryptionProvider with all information to unlock
+     * the volume
+     */
+    public DecryptionProvider decryptionProviderFactory(VolumeMetaData volumeMetaData, DataSourceConfiguration dataSourceConfiguration);
 
+    @Override
     public JPanel getPanel();
 
     public void start();
-    
+
     public void stop();
+
     /**
      *
-     * @param volumeMetaData
-     * @return
+     * @param volumeMetaData all required information to determine if the volume
+     * can be unlocked with this decryptionProvider
+     * @return true if the volume matches the DecryptionProvider
      */
     public boolean matchesVolume(VolumeMetaData volumeMetaData);
 
-
     /**
      *
-     * @param className
-     * @return
+     * @param className className of the requested DecryptionProvider
+     * @return Empty Instance of the class from the param, null if no valid
+     * DecryptionProvider was found
      */
     public static DecryptionProvider getInstaceForClassString(String className) {
         for (DecryptionProvider decryptionProvider : Lookup.getDefault().lookupAll(DecryptionProvider.class)) {
-            if(className.equals(decryptionProvider.getClass().toString())) { 
+            if (className.equals(decryptionProvider.getClass().toString())) {
                 return decryptionProvider;
             }
         }
