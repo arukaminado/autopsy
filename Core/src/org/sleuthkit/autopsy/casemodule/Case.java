@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -36,6 +38,7 @@ import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +50,7 @@ import java.util.stream.Stream;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import org.apache.commons.io.FileUtils;
+import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
 import org.openide.util.actions.CallableSystemAction;
 import org.openide.windows.WindowManager;
@@ -95,6 +99,38 @@ public class Case implements SleuthkitCase.ErrorObserver {
     private static final String autopsyVer = Version.getVersion(); // current version of autopsy. Change it when the version is changed
     private static final String EVENT_CHANNEL_NAME = "%s-Case-Events"; //NON-NLS
     private static String appName = null;
+    private static List<DecryptionProvider> activeDecryptionProvider = new LinkedList<>();
+
+    private static boolean tryToOpenDecryptionProvider(SleuthkitCase db, String path) {
+        String[] folderNames = path.split("/");
+        String deviceId = folderNames[folderNames.length - 2];
+        try {
+            UUID uuid = UUID.fromString(deviceId);
+            //do something
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
+        String queryStr = "select * from decryption_provider_information where device_id = \"" + deviceId + "\"";
+        try {
+            ResultSet resultSet = db.executeQuery(queryStr).getResultSet();
+            if (resultSet.next()) {
+                String decryptionProviderClassName = resultSet.getString(1);
+                String key = resultSet.getString(2);
+                String encryptedPath = resultSet.getString(3);
+                int keyType = resultSet.getInt(5);
+                int volume_id = resultSet.getInt(6);
+                DecryptionProvider x = DecryptionProvider.getInstaceForClassString(decryptionProviderClassName);
+                VolumeMetaData volumeMetaData = VolumeMetaData.getVolumeMetaData(encryptedPath).get(volume_id - 1);
+                DecryptionProvider inst = x.decryptionProviderFactory(volumeMetaData, key, keyType, deviceId);
+                inst.start();
+                activeDecryptionProvider.add(inst);
+                return true;
+            }
+        } catch (TskCoreException | SQLException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+        return false;
+    }
     volatile private IntervalErrorReportData tskErrorReporter = null;
     private static final int MIN_SECONDS_BETWEEN_ERROR_REPORTS = 60; // No less than 60 seconds between warnings for errors
     private static final int MAX_SANITIZED_NAME_LENGTH = 47;
@@ -110,6 +146,13 @@ public class Case implements SleuthkitCase.ErrorObserver {
      * once to receive events for all cases.
      */
     private static final AutopsyEventPublisher eventPublisher = new AutopsyEventPublisher();
+
+    private void closeDecryptionProvider() {
+        for (DecryptionProvider decryptionProvider : activeDecryptionProvider) {
+            decryptionProvider.stop();
+        }
+        activeDecryptionProvider.clear();
+    }
 
     /**
      * Events that the case module will fire. Event listeners can get the event
@@ -660,7 +703,8 @@ public class Case implements SleuthkitCase.ErrorObserver {
                     long obj_id = entry.getKey();
                     String path = entry.getValue();
                     boolean fileExists = (pathExists(path) || driveExists(path));
-                    if (!fileExists) {
+                    if ((!fileExists) && !tryToOpenDecryptionProvider(db, path)) {
+                        
                         int ret = JOptionPane.showConfirmDialog(
                                 WindowManager.getDefault().getMainWindow(),
                                 NbBundle.getMessage(Case.class, "Case.checkImgExist.confDlg.doesntExist.msg", getAppName(), path),
@@ -863,6 +907,7 @@ public class Case implements SleuthkitCase.ErrorObserver {
             services.close();
             this.xmlcm.close(); // close the xmlcm
             this.db.close();
+            closeDecryptionProvider();
         } catch (Exception e) {
             throw new CaseActionException(NbBundle.getMessage(this.getClass(), "Case.closeCase.exception.msg"), e);
         }
