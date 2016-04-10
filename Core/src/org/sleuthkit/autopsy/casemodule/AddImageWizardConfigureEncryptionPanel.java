@@ -50,6 +50,7 @@ public class AddImageWizardConfigureEncryptionPanel implements WizardDescriptor.
         if (!lastPath.equals(dataSourceConfiguration.path) && (dataSourceConfiguration.type == DataSourceType.Image || dataSourceConfiguration.type == DataSourceType.Device)) {
             decryptionProviders = getEncryptionProviderForDataSource(dataSourceConfiguration);
             visual.updateProviderList(decryptionProviders);
+            lastPath = dataSourceConfiguration.path;
         }
 
         return visual;
