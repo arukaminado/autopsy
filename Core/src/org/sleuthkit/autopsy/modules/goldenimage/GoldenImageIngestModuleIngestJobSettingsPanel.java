@@ -115,9 +115,6 @@ public class GoldenImageIngestModuleIngestJobSettingsPanel extends IngestModuleI
 	DataSourceCBWrapper dsWrapper = (DataSourceCBWrapper)cbGoldenImage.getSelectedItem();
 	settings.setSelectedDatasource(dsWrapper.getContent());
 	
-	ingestPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        ingestPanel.setLayout(new BorderLayout());
-        //ingestPanel.add(this.ingestJobSettingsPanel, BorderLayout.CENTER);
 	
 	cbGoldenImage.addActionListener((ActionEvent e) -> {
 		DataSourceCBWrapper dsTmpWrapper = (DataSourceCBWrapper)cbGoldenImage.getSelectedItem();
@@ -148,66 +145,56 @@ public class GoldenImageIngestModuleIngestJobSettingsPanel extends IngestModuleI
         private void initComponents() {
 
                 txtTitle = new javax.swing.JLabel();
-                txtDescription = new javax.swing.JLabel();
                 txtSelectGI = new javax.swing.JLabel();
                 cbGoldenImage = new javax.swing.JComboBox<DataSourceCBWrapper>();
-                ingestPanel = new javax.swing.JPanel();
+                jScrollPane1 = new javax.swing.JScrollPane();
+                jTextArea1 = new javax.swing.JTextArea();
 
                 txtTitle.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
                 org.openide.awt.Mnemonics.setLocalizedText(txtTitle, org.openide.util.NbBundle.getMessage(GoldenImageIngestModuleIngestJobSettingsPanel.class, "GoldenImageIngestModuleIngestJobSettingsPanel.txtTitle.text")); // NOI18N
 
-                org.openide.awt.Mnemonics.setLocalizedText(txtDescription, org.openide.util.NbBundle.getMessage(GoldenImageIngestModuleIngestJobSettingsPanel.class, "GoldenImageIngestModuleIngestJobSettingsPanel.txtDescription.text")); // NOI18N
-
                 org.openide.awt.Mnemonics.setLocalizedText(txtSelectGI, org.openide.util.NbBundle.getMessage(GoldenImageIngestModuleIngestJobSettingsPanel.class, "GoldenImageIngestModuleIngestJobSettingsPanel.txtSelectGI.text")); // NOI18N
 
-                javax.swing.GroupLayout ingestPanelLayout = new javax.swing.GroupLayout(ingestPanel);
-                ingestPanel.setLayout(ingestPanelLayout);
-                ingestPanelLayout.setHorizontalGroup(
-                        ingestPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGap(0, 0, Short.MAX_VALUE)
-                );
-                ingestPanelLayout.setVerticalGroup(
-                        ingestPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGap(0, 0, Short.MAX_VALUE)
-                );
+                jTextArea1.setEditable(false);
+                jTextArea1.setColumns(20);
+                jTextArea1.setLineWrap(true);
+                jTextArea1.setRows(5);
+                jTextArea1.setText(org.openide.util.NbBundle.getMessage(GoldenImageIngestModuleIngestJobSettingsPanel.class, "GoldenImageIngestModuleIngestJobSettingsPanel.jTextArea1.text")); // NOI18N
+                jScrollPane1.setViewportView(jTextArea1);
 
                 javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
                 this.setLayout(layout);
                 layout.setHorizontalGroup(
                         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addGroup(layout.createSequentialGroup()
-                                                .addComponent(ingestPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                .addGap(267, 267, 267))
-                                        .addGroup(layout.createSequentialGroup()
-                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                                        .addComponent(txtTitle)
-                                                        .addComponent(txtDescription, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                        .addComponent(txtSelectGI)
-                                                        .addComponent(cbGoldenImage, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                                .addGap(38, 38, 38))))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addComponent(cbGoldenImage, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 279, Short.MAX_VALUE)
+                                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                                        .addComponent(txtTitle, javax.swing.GroupLayout.Alignment.LEADING)
+                                                        .addComponent(txtSelectGI, javax.swing.GroupLayout.Alignment.LEADING))
+                                                .addGap(0, 0, Short.MAX_VALUE)))
+                                .addGap(22, 22, 22))
                 );
                 layout.setVerticalGroup(
                         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
                                 .addComponent(txtTitle)
+                                .addGap(23, 23, 23)
+                                .addComponent(jScrollPane1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtDescription)
-                                .addGap(18, 18, 18)
                                 .addComponent(txtSelectGI)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(cbGoldenImage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(ingestPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addContainerGap())
                 );
         }// </editor-fold>//GEN-END:initComponents
         // Variables declaration - do not modify//GEN-BEGIN:variables
         private javax.swing.JComboBox<DataSourceCBWrapper> cbGoldenImage;
-        private javax.swing.JPanel ingestPanel;
-        private javax.swing.JLabel txtDescription;
+        private javax.swing.JScrollPane jScrollPane1;
+        private javax.swing.JTextArea jTextArea1;
         private javax.swing.JLabel txtSelectGI;
         private javax.swing.JLabel txtTitle;
         // End of variables declaration//GEN-END:variables

@@ -52,32 +52,39 @@ import org.sleuthkit.datamodel.Content;
 /**
  * Instances of this class provide a comprehensive UI for managing the hash sets
  * configuration.
+ * 
+ * @TODO: This Class is currently not used due to incomplete functionality of the Golde Image Module Features.
+ * For full functionality, Core-Changes need to be made.
  */
 public final class GoldenImageGlobalSettingsPanel extends IngestModuleGlobalSettingsPanel implements OptionsPanel {
 
 	public IngestJobSettingsPanel ingestJobSettingsPanel;
 	public static int counter = 0;
+	public boolean loaded = false;
 	
-    private final GIManager giManager = GIManager.getInstance();
+    private final GIManager giManager;
 
     public GoldenImageGlobalSettingsPanel() {
+	    giManager = GIManager.getInstance();
 	counter++;
 	    if(counter > 1){
+		    counter = 0;
 		    return;
 	    }
+	    
 	IngestJobSettings ingestJobSettings = new IngestJobSettings(GoldenImageGlobalSettingsPanel.class.getCanonicalName(), IngestJobSettings.IngestType.FILES_ONLY);
 	giManager.setIngestJobSettings(ingestJobSettings);
 	this.ingestJobSettingsPanel = new IngestJobSettingsPanel(ingestJobSettings);
 	
         initComponents();
         customizeComponents();
-
+	loaded = true;
     }
     
     @Override
 	protected void finalize() throws Throwable {
 		super.finalize(); //To change body of generated methods, choose Tools | Templates.
-		//counter--;
+		counter--;
 	}
 
     private void customizeComponents() {
@@ -97,13 +104,18 @@ public final class GoldenImageGlobalSettingsPanel extends IngestModuleGlobalSett
 
     @Override
     public void saveSettings() {
-	giManager.enableFilterChangedFiles(chChangedFiles.isSelected());
-	giManager.enableFilterUntaggedFiles(chUntaggedFiles.isSelected());
-	giManager.enableFilterSafeFiles(chSafeFiles.isSelected());
+	if(giManager != null && loaded){
+		giManager.enableFilterChangedFiles(chChangedFiles.isSelected());
+		giManager.enableFilterUntaggedFiles(chUntaggedFiles.isSelected());
+		giManager.enableFilterSafeFiles(chSafeFiles.isSelected());
+		
+		IngestJobSettings ingestJobSettings = this.ingestJobSettingsPanel.getSettings();
+		showWarnings(ingestJobSettings);
+		ingestJobSettings.save();
+	}
+	
 	    
-        IngestJobSettings ingestJobSettings = this.ingestJobSettingsPanel.getSettings();
-	showWarnings(ingestJobSettings);
-        ingestJobSettings.save();
+        
     }
 
     private static void showWarnings(IngestJobSettings ingestJobSettings) {
@@ -119,7 +131,11 @@ public final class GoldenImageGlobalSettingsPanel extends IngestModuleGlobalSett
 
     @Override
     public void load() {
-        
+        if(giManager != null && loaded){
+		chChangedFiles.setSelected(giManager.isFilterChangedFilesEnabled());
+		chSafeFiles.setSelected(giManager.isFilterSafeFilesEnabled());
+		chUntaggedFiles.setSelected(giManager.isFilterUntaggedFilesEnabled());
+	}
     }
 
     @Override
@@ -186,7 +202,7 @@ public final class GoldenImageGlobalSettingsPanel extends IngestModuleGlobalSett
                 );
                 ingestPanelLayout.setVerticalGroup(
                         ingestPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGap(0, 287, Short.MAX_VALUE)
+                        .addGap(0, 263, Short.MAX_VALUE)
                 );
 
                 lbTxtFilter.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
@@ -217,33 +233,30 @@ public final class GoldenImageGlobalSettingsPanel extends IngestModuleGlobalSett
                                 .addGroup(filterPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addComponent(lbDataFilterDesc, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addGroup(filterPanelLayout.createSequentialGroup()
-                                                .addGroup(filterPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                        .addGroup(filterPanelLayout.createSequentialGroup()
-                                                                .addComponent(chSafeFiles, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                                .addGap(69, 69, 69))
-                                                        .addGroup(filterPanelLayout.createSequentialGroup()
-                                                                .addComponent(chChangedFiles, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                                .addGap(38, 38, 38))
-                                                        .addComponent(lbTxtFilter, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                        .addGroup(filterPanelLayout.createSequentialGroup()
-                                                                .addComponent(chUntaggedFiles, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                                .addGap(31, 31, 31)))
-                                                .addGap(465, 465, 465)))
+                                                .addComponent(lbTxtFilter, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addGap(465, 465, 465))
+                                        .addGroup(filterPanelLayout.createSequentialGroup()
+                                                .addComponent(chUntaggedFiles, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addGap(18, 18, 18)
+                                                .addComponent(chChangedFiles, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addGap(18, 18, 18)
+                                                .addComponent(chSafeFiles, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addGap(241, 241, 241)))
                                 .addContainerGap())
                 );
                 filterPanelLayout.setVerticalGroup(
                         filterPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(filterPanelLayout.createSequentialGroup()
-                                .addContainerGap()
+                                .addGap(0, 0, 0)
                                 .addComponent(lbTxtFilter, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(lbDataFilterDesc, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(chUntaggedFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 31, Short.MAX_VALUE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(chChangedFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 31, Short.MAX_VALUE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(chSafeFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE))
+                                .addComponent(lbDataFilterDesc, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(filterPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(chUntaggedFiles, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(chChangedFiles, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(chSafeFiles, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addContainerGap())
                 );
 
                 lbTxtIngestModules.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
@@ -266,7 +279,7 @@ public final class GoldenImageGlobalSettingsPanel extends IngestModuleGlobalSett
                                                                 .addGap(214, 214, 214))
                                                         .addComponent(ingestPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                                 .addGap(12, 12, 12)))
-                                .addGap(19, 19, 19))
+                                .addGap(10, 10, 10))
                 );
                 jPanel1Layout.setVerticalGroup(
                         jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -275,8 +288,8 @@ public final class GoldenImageGlobalSettingsPanel extends IngestModuleGlobalSett
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(ingestPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(filterPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addContainerGap())
+                                .addComponent(filterPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(10, 10, 10))
                 );
 
                 jScrollPane2.setViewportView(jPanel1);
@@ -293,7 +306,7 @@ public final class GoldenImageGlobalSettingsPanel extends IngestModuleGlobalSett
                         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 531, Short.MAX_VALUE)
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE)
                                 .addContainerGap())
                 );
         }// </editor-fold>//GEN-END:initComponents

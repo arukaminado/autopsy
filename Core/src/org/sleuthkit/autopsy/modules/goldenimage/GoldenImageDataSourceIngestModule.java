@@ -29,10 +29,13 @@
  */
 package org.sleuthkit.autopsy.modules.goldenimage;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import org.sleuthkit.autopsy.modules.goldenimage.*;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import org.openide.util.Exceptions;
 import org.sleuthkit.autopsy.casemodule.Case;
@@ -50,9 +53,15 @@ import org.sleuthkit.autopsy.ingest.IngestJobContext;
 import org.sleuthkit.autopsy.ingest.IngestManager;
 import org.sleuthkit.autopsy.ingest.IngestMessage;
 import org.sleuthkit.autopsy.ingest.IngestServices;
+import static org.sleuthkit.autopsy.modules.goldenimage.GoldenImageIngestModuleFactory.giTagChanged;
+import static org.sleuthkit.autopsy.modules.goldenimage.GoldenImageIngestModuleFactory.giTagChangedName;
+import static org.sleuthkit.autopsy.modules.goldenimage.GoldenImageIngestModuleFactory.giTagSafe;
+import static org.sleuthkit.autopsy.modules.goldenimage.GoldenImageIngestModuleFactory.giTagSafeName;
 import org.sleuthkit.datamodel.HashUtility;
 import org.sleuthkit.datamodel.LocalFilesDataSource;
+import org.sleuthkit.datamodel.TagName;
 import org.sleuthkit.datamodel.TskData;
+import org.sleuthkit.datamodel.TskDataException;
 
 /**
  * Sample data source ingest module that doesn't do much. Demonstrates per
@@ -65,19 +74,14 @@ class GoldenImageDataSourceIngestModule implements DataSourceIngestModule {
    // private final boolean skipKnownFiles;
     private IngestJobContext context = null;
     GoldenImageModuleIngestJobSettings settings;
-    private ArrayList<AbstractFile> deletedFiles;
     private ArrayList<AbstractFile> comparisonFailFiles;
+    private TagName giCustomDeletedTag = null;
     
-    private ArrayList<Content> contentsToScan;
-    private boolean ingestStarted = false;
-    private boolean readyToIngest = false;
+    
 
     GoldenImageDataSourceIngestModule(GoldenImageModuleIngestJobSettings pSettings) {
 	    settings = pSettings;
-	    deletedFiles = new ArrayList<>();
 	    comparisonFailFiles = new ArrayList<>();
-	    contentsToScan = new ArrayList<>();
-        //this.skipKnownFiles = settings.skipKnownFiles();
     }
 
     @Override
@@ -108,16 +112,27 @@ class GoldenImageDataSourceIngestModule implements DataSourceIngestModule {
 		int hashedDIFilesCount = 0;
 		
 		if(!allFiles.isEmpty()){
-			progressBar.switchToDeterminate(2000);//allFiles.size()); TODO
+			progressBar.switchToDeterminate(allFiles.size());
 			for(AbstractFile aFile : allFiles){
+				//Stop processing if requested
+				if (context.dataSourceIngestIsCancelled()) {
+					return IngestModule.ProcessResult.OK;
+				}
+				
 				giFileCount++;
-				//TODO DELETE
-				if(giFileCount >= 2000)
-					break;
+				
+				
 				//Check if the AbstractFile is a File. Continue if it's a directory or similar.
-				if(aFile.getType() != null && aFile.getType() != TskData.TSK_DB_FILES_TYPE_ENUM.DERIVED &&
-					aFile.getType() != TskData.TSK_DB_FILES_TYPE_ENUM.FS &&
-					aFile.getType() != TskData.TSK_DB_FILES_TYPE_ENUM.LOCAL){
+				/*if((aFile.getType() != null && aFile.getType() != TskData.TSK_DB_FILES_TYPE_ENUM.DERIVED &&
+					(aFile.getType() != TskData.TSK_DB_FILES_TYPE_ENUM.FS || 
+					aFile.getDirType() == TskData.TSK_FS_NAME_TYPE_ENUM.DIR)&&
+					aFile.getType() != TskData.TSK_DB_FILES_TYPE_ENUM.LOCAL ) ||
+					!aFile.canRead()){
+					progressBar.progress("Jumping over Non-File.",giFileCount);
+					continue;
+				}*/
+				//Check if the AbstractFile is a File. Continue if it's a directory or similar.
+				if(!aFile.isFile() || !aFile.canRead()){
 					progressBar.progress("Jumping over Non-File.",giFileCount);
 					continue;
 				}
@@ -127,8 +142,8 @@ class GoldenImageDataSourceIngestModule implements DataSourceIngestModule {
 				String diFileName = "";
 				String giFileName = (aFile.getName() == null?"":aFile.getName());
 				
-				////CALC HASH HashUtility.calculateMd5(pFile);
-				if(dirtyImageFile != null){
+				//Check if dirtyImageFile exists & is readable
+				if(dirtyImageFile != null && dirtyImageFile.isFile() && dirtyImageFile.canRead()){
 					diFileName = (dirtyImageFile.getName()==null?"":dirtyImageFile.getName());
 					//Check if the md5-Sum of the 2 Files are calculated; If not, calculate.
 					if(calculateHash(dirtyImageFile)){
@@ -144,54 +159,47 @@ class GoldenImageDataSourceIngestModule implements DataSourceIngestModule {
 						//Can't compare - One of the hashes is missing
 						comparisonFailFiles.add(aFile);
 					}else if(dirtyImageFile.getMd5Hash().equals(aFile.getMd5Hash())){
-						//System.out.println(giFileCount+": SAMESAME md5sum: "+dirtyImageFile.getMd5Hash()+" VS "+aFile.getMd5Hash());
 						tagsManager.addContentTag(dirtyImageFile, GoldenImageIngestModuleFactory.giTagSafe, "");
 						
-						//Add File to "Files to Filter" List
-						if(settings.getFilterSafeFiles()){
-							contentsToScan.add(dirtyImageFile);
-						}
 					}else if(!dirtyImageFile.getMd5Hash().equals(aFile.getMd5Hash())){
 						tagsManager.addContentTag(dirtyImageFile, GoldenImageIngestModuleFactory.giTagChanged, "The Content of this file is different from it's equivalent on the golden image.");
 						
-						//Add File to "Files to Filter" List
-						if(settings.getFilterChangedFiles()){
-							contentsToScan.add(dirtyImageFile);
-						}
 					}else{
 						//Untagged File
-						//Add File to "Files to Filter" List
-						if(settings.getFilterUntaggedFiles()){
-							contentsToScan.add(dirtyImageFile);
-						}
+						
 					}
 				}else{
 					//File wasn't found in the dirty image
-					deletedFiles.add(aFile);
+					tagsManager.addContentTag(aFile, getCustomDeletedTag(dataSource.getName()),"The file exists on the Golden Image, but not on the Dirty Image.");
 				}
 				
-				progressBar.progress("Comparing "+dataSource.getName()+" with "+goldenImageDS.getName(),giFileCount);
+				progressBar.progress("GI: Comparing "+diFileName+" ("+dataSource.getName()+") with "+giFileName+" ("+goldenImageDS.getName()+")",giFileCount);
 			}
 		}
 		
-		
+		//Stop processing if requested
 		if (context.dataSourceIngestIsCancelled()) {
 			return IngestModule.ProcessResult.OK;
 		}
 		
-		//Run Ingest Modules TODO
-		readyToIngest = true;
-		startIngest();
 		
-		// Post Message
-		//String msgText = String.format("Processed GI %d files", giFileCount);
-		String msgText = "Golden Image: RESULTS =====\n Hashed GI Files: "+hashedGIFilesCount+"\n Hashed DI Files: "+hashedDIFilesCount+"\n Total Files: "+allFiles.size()+"\n Processed Files: "+giFileCount+"\n Deleted Files: "+deletedFiles.size()+"\n Comparison Failure Files: "+comparisonFailFiles.size();
-		IngestMessage message = IngestMessage.createMessage(
+		// Post Stats: Hashing
+		String msgStatsHashing = "Golden Image Hashing Stats: \n Hashed GI Files: "+hashedGIFilesCount+"\n Hashed DI Files: "+hashedDIFilesCount;
+		IngestMessage messageStatsHashing = IngestMessage.createMessage(
 			IngestMessage.MessageType.DATA,
 			GoldenImageIngestModuleFactory.getModuleName(),
-			msgText);
-		IngestServices.getInstance().postMessage(message);
+			msgStatsHashing);
+		IngestServices.getInstance().postMessage(messageStatsHashing);
+		
+		//Post Stats: General
+		String msgStatsGeneral = "Golden Image General Stats:\n Total Files: "+allFiles.size()+"\n Processed Files: "+giFileCount+"\n Comparison Failures: "+comparisonFailFiles.size();
+		IngestMessage messageStatsGeneral = IngestMessage.createMessage(
+			IngestMessage.MessageType.DATA,
+			GoldenImageIngestModuleFactory.getModuleName(),
+			msgStatsGeneral);
+		IngestServices.getInstance().postMessage(messageStatsGeneral);
 
+		
 		return IngestModule.ProcessResult.OK;
 		
 		
@@ -200,6 +208,34 @@ class GoldenImageDataSourceIngestModule implements DataSourceIngestModule {
 	}
 	  
 	return IngestModule.ProcessResult.ERROR;
+    }
+    
+    private TagName getCustomDeletedTag(String pDirtyImageName){
+	    if(giCustomDeletedTag != null){
+		    return giCustomDeletedTag;
+	    }
+	    
+	    TagsManager tagsManager = Case.getCurrentCase().getServices().getTagsManager();
+	    try {
+		    giCustomDeletedTag = tagsManager.addTagName("DI_DELETED_"+pDirtyImageName, "The file exists on the Golden Image, but not on the Dirty Image.", TagName.HTML_COLOR.LIME);
+	    } catch (TagsManager.TagNameAlreadyExistsException ex) {
+		    try {
+			for (TagName tagName : tagsManager.getAllTagNames()) {
+				if(giCustomDeletedTag != null)
+					break;
+				
+				if (tagName.getDisplayName().equals("DI_DELETED_"+pDirtyImageName)) {
+				    giCustomDeletedTag = tagName;
+				}
+			}
+		    } catch (TskCoreException ex1) {
+			Exceptions.printStackTrace(ex1);
+		    }
+	    } catch (TskCoreException ex) {
+		    Exceptions.printStackTrace(ex);
+	    }
+	    
+	    return giCustomDeletedTag;
     }
     
     /**
@@ -217,10 +253,9 @@ class GoldenImageDataSourceIngestModule implements DataSourceIngestModule {
 	    AbstractFile foundFile = null;
 	    
 	    
-	    //TODO: EVTL CHECKEN OB ES SICH UM DIR ODER FILE HANDELT...NUR CHECK WENN FILE
 	    FileManager fileManager = Case.getCurrentCase().getServices().getFileManager();
 	    try {
-		    ArrayList<AbstractFile> foundFiles = new ArrayList(fileManager.findFiles(pDataSource, (pFile.getName() != null ? pFile.getName() : ""), (pFile.getParentPath()!=null?pFile.getParentPath():"")));
+		    ArrayList<AbstractFile> foundFiles = new ArrayList<>(fileManager.findFiles(pDataSource, (pFile.getName() != null ? pFile.getName() : ""), (pFile.getParentPath()!=null?pFile.getParentPath():"")));
 		    if(foundFiles.isEmpty()){
 			    foundFile = null;
 		    }else{
@@ -239,7 +274,7 @@ class GoldenImageDataSourceIngestModule implements DataSourceIngestModule {
      *
      */
     private boolean calculateHash(AbstractFile pFile){
-	if(pFile.getMd5Hash() == null || pFile.getMd5Hash().isEmpty()){
+	if(pFile.isFile() && pFile.canRead() && (pFile.getMd5Hash() == null || pFile.getMd5Hash().isEmpty())){
 		try {
 			HashUtility.calculateMd5(pFile);
 			return true;
@@ -248,29 +283,13 @@ class GoldenImageDataSourceIngestModule implements DataSourceIngestModule {
 			try {
 				uniquePath = pFile.getUniquePath();
 			} catch (TskCoreException ex1) {
-				System.out.println("EXCEPTION: Couldn't get Unique Path");
-				//Exceptions.printStackTrace(ex1);
+				Exceptions.printStackTrace(ex1);
 			}
-			System.out.println("Golden Image Hashing error: Couldn't hash file, see following error.\n File: "+pFile.getName()+"\n DirType: "+pFile.getDirTypeAsString()+"\n  Size: "+pFile.getSize()+"\n Unique Path: "+uniquePath+"\n Parent Path: "+pFile.getParentPath()+"\n Type: "+pFile.getType());
+			
 			Exceptions.printStackTrace(ex);
 			return false;
 		}
 	}
 	return false;
-    }
-    
-    /**
-     * Start ingest after verifying we have a new image, we are ready to ingest,
-     * and we haven't already ingested.
-     */
-    private void startIngest() {
-	    System.out.println("Golden Image Ingest: Start");
-	    System.out.println("Golden Image Ingest: Count of Files to ingest: "+contentsToScan.size());
-        if (!contentsToScan.isEmpty() && readyToIngest && !ingestStarted) {
-            ingestStarted = true;
-	    
-	    System.out.println("Golden Image Ingest: Queue Job");
-            IngestManager.getInstance().queueIngestJob(contentsToScan, GIManager.getInstance().getIngestJobSettings());
-        }
     }
 }

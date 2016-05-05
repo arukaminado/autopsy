@@ -97,8 +97,8 @@ import org.sleuthkit.datamodel.TskCoreException;
 public class GoldenImageIngestModuleFactory  extends IngestModuleFactoryAdapter{
 
     private static final String VERSION_NUMBER = "1.0.0";
-    public static String giTagChangedName = "GI_Changed";
-    public static String giTagSafeName = "GI_Safe";
+    public static String giTagChangedName = "DI_Changed";
+    public static String giTagSafeName = "DI_Safe";
     public static TagName giTagChanged;
     public static TagName giTagSafe;
     
@@ -191,7 +191,7 @@ public class GoldenImageIngestModuleFactory  extends IngestModuleFactoryAdapter{
      */
     @Override
     public boolean hasGlobalSettingsPanel() {
-        return true;
+        return false;
     }
 
     /**
@@ -209,9 +209,11 @@ public class GoldenImageIngestModuleFactory  extends IngestModuleFactoryAdapter{
      */
     @Override
     public IngestModuleGlobalSettingsPanel getGlobalSettingsPanel() {
+	    /*
         GoldenImageGlobalSettingsPanel globalSettingsPanel = new GoldenImageGlobalSettingsPanel();
         globalSettingsPanel.load();
-        return globalSettingsPanel;
+        return globalSettingsPanel;*/
+	    return null;
     }
 
     /**
