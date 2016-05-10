@@ -29,17 +29,12 @@
  */
 package org.sleuthkit.autopsy.modules.goldenimage;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import org.sleuthkit.autopsy.modules.goldenimage.*;
 import java.util.List;
-import java.util.UUID;
-import java.util.logging.Level;
 import org.openide.util.Exceptions;
 import org.sleuthkit.autopsy.casemodule.Case;
-import org.sleuthkit.autopsy.casemodule.LocalFilesDSProcessor;
 import org.sleuthkit.autopsy.casemodule.services.FileManager;
 import org.sleuthkit.autopsy.casemodule.services.TagsManager;
 import org.sleuthkit.autopsy.ingest.DataSourceIngestModuleProgress;
@@ -47,21 +42,12 @@ import org.sleuthkit.autopsy.ingest.IngestModule;
 import org.sleuthkit.datamodel.AbstractFile;
 import org.sleuthkit.datamodel.Content;
 import org.sleuthkit.datamodel.TskCoreException;
-import org.sleuthkit.autopsy.coreutils.Logger;
 import org.sleuthkit.autopsy.ingest.DataSourceIngestModule;
 import org.sleuthkit.autopsy.ingest.IngestJobContext;
-import org.sleuthkit.autopsy.ingest.IngestManager;
 import org.sleuthkit.autopsy.ingest.IngestMessage;
 import org.sleuthkit.autopsy.ingest.IngestServices;
-import static org.sleuthkit.autopsy.modules.goldenimage.GoldenImageIngestModuleFactory.giTagChanged;
-import static org.sleuthkit.autopsy.modules.goldenimage.GoldenImageIngestModuleFactory.giTagChangedName;
-import static org.sleuthkit.autopsy.modules.goldenimage.GoldenImageIngestModuleFactory.giTagSafe;
-import static org.sleuthkit.autopsy.modules.goldenimage.GoldenImageIngestModuleFactory.giTagSafeName;
 import org.sleuthkit.datamodel.HashUtility;
-import org.sleuthkit.datamodel.LocalFilesDataSource;
 import org.sleuthkit.datamodel.TagName;
-import org.sleuthkit.datamodel.TskData;
-import org.sleuthkit.datamodel.TskDataException;
 
 /**
  * Sample data source ingest module that doesn't do much. Demonstrates per
@@ -92,9 +78,9 @@ class GoldenImageDataSourceIngestModule implements DataSourceIngestModule {
 
     @Override
     public ProcessResult process(Content dataSource, DataSourceIngestModuleProgress progressBar) {
-	GIManager giManager = GIManager.getInstance();
+	
 	TagsManager tagsManager = Case.getCurrentCase().getServices().getTagsManager();
-	Content goldenImageDS = settings.getSelectedDatasource();//giManager.getGoldenImageContent();
+	Content goldenImageDS = settings.getSelectedDatasource();
 	
 	
 	if(goldenImageDS == null){

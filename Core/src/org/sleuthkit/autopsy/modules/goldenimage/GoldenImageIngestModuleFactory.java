@@ -267,10 +267,6 @@ public class GoldenImageIngestModuleFactory  extends IngestModuleFactoryAdapter{
     @Override
     public IngestModuleIngestJobSettingsPanel getIngestJobSettingsPanel(IngestModuleIngestJobSettings settings) {
         
-	GIManager giManager = GIManager.getInstance();
-	if(giManager.getSettings() != null)
-		giManager.setSettings((GoldenImageModuleIngestJobSettings)getDefaultIngestJobSettings());
-	
         return new GoldenImageIngestModuleIngestJobSettingsPanel((GoldenImageModuleIngestJobSettings) settings);
     }
 
@@ -320,11 +316,9 @@ public class GoldenImageIngestModuleFactory  extends IngestModuleFactoryAdapter{
     public DataSourceIngestModule createDataSourceIngestModule(IngestModuleIngestJobSettings settings) {
         
 	    if (!(settings instanceof GoldenImageModuleIngestJobSettings)) {
-            throw new IllegalArgumentException("Expected settings argument to be instanceof SampleModuleIngestJobSettings");
+            throw new IllegalArgumentException("Expected settings argument to be instanceof GoldenImageModuleIngestJobSettings");
         }
-	GIManager giManager = GIManager.getInstance();
-	if(giManager.getSettings() != null)
-		giManager.setSettings((GoldenImageModuleIngestJobSettings)getDefaultIngestJobSettings());
+	
         return new GoldenImageDataSourceIngestModule((GoldenImageModuleIngestJobSettings) settings);
     }
 

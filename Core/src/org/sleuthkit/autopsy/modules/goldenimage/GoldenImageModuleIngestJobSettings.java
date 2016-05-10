@@ -29,8 +29,12 @@
  */
 package org.sleuthkit.autopsy.modules.goldenimage;
 
+import java.util.ArrayList;
+import java.util.logging.Level;
+import org.sleuthkit.autopsy.casemodule.Case;
 import org.sleuthkit.autopsy.ingest.IngestModuleIngestJobSettings;
 import org.sleuthkit.datamodel.Content;
+import org.sleuthkit.datamodel.TskCoreException;
 
 /**
  * Ingest job options for sample ingest module instances.
@@ -41,9 +45,6 @@ public class GoldenImageModuleIngestJobSettings implements IngestModuleIngestJob
     
     private transient Content selectedDatasource;
     private long dataSourceID;
-    private boolean filterUntaggedFiles = true;
-    private boolean filterChangedFiles = true;
-    private boolean filterSafeFiles = false;
     
     
 
@@ -63,7 +64,7 @@ public class GoldenImageModuleIngestJobSettings implements IngestModuleIngestJob
     public void setDataSourceID(long pDataSourceID){
 	    dataSourceID = pDataSourceID;
 	    
-	    selectedDatasource = GIManager.getInstance().getDatasourceById(pDataSourceID);
+	    selectedDatasource = getDatasourceById(pDataSourceID);
     }
     
     public void setSelectedDatasource(Content pContent){
@@ -75,32 +76,23 @@ public class GoldenImageModuleIngestJobSettings implements IngestModuleIngestJob
 	    return selectedDatasource;
     }
     
-    public void setFilterUntaggedFiles(boolean pEnable){
-	    filterUntaggedFiles = pEnable;
-    }
-    
-    public void setFilterChangedFiles(boolean pEnable){
-	    filterChangedFiles = pEnable;
-    }
-    
-    public void setFilterSafeFiles(boolean pEnable){
-	    filterSafeFiles = pEnable;
-    }
-    
-    public boolean getFilterUntaggedFiles(){
-	    return filterUntaggedFiles;
-    }
-    
-    public boolean getFilterChangedFiles(){
-	    return filterChangedFiles;
-    }
-    
-    public boolean getFilterSafeFiles(){
-	    return filterSafeFiles;
-    }
-    
-    public boolean getSelectedModules(){
+    public Content getDatasourceById(long pDataSourceId){
+	    Case currentCase = Case.getCurrentCase();
+	    ArrayList<Content> listDS = new ArrayList<>();
+	    try {
+		    listDS.addAll(currentCase.getDataSources());
+		    
+	    } catch (TskCoreException ex) {
+		    java.util.logging.Logger.getLogger(GoldenImageModuleIngestJobSettings.class.getName()).log(Level.SEVERE, null, ex);
+	    }
 	    
-	    return true;
+	    if(!listDS.isEmpty()){
+		    for(Content c : listDS){
+			    if(c.getId() == pDataSourceId){
+				    return c;
+			    }
+		    }
+	    }
+	    return null;
     }
 }

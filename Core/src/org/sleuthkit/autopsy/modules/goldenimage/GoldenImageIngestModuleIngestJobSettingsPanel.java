@@ -30,15 +30,11 @@
  */
 package org.sleuthkit.autopsy.modules.goldenimage;
 
-import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import javax.swing.DefaultComboBoxModel;
 import org.sleuthkit.autopsy.casemodule.Case;
-import org.sleuthkit.autopsy.coreutils.ModuleSettings;
-import org.sleuthkit.autopsy.ingest.IngestJobSettings;
 import org.sleuthkit.autopsy.ingest.IngestJobSettingsPanel;
 import org.sleuthkit.datamodel.Content;
 import org.sleuthkit.autopsy.ingest.IngestModuleIngestJobSettings;
@@ -50,31 +46,19 @@ import org.sleuthkit.datamodel.TskCoreException;
  */
 public class GoldenImageIngestModuleIngestJobSettingsPanel extends IngestModuleIngestJobSettingsPanel {
 	
-    //private final IngestJobSettingsPanel ingestJobSettingsPanel;
 
 	public IngestJobSettingsPanel ingestJobSettingsPanel;
 	public static int counter = 0;
 	
 	private GoldenImageModuleIngestJobSettings settings;
-    /**
-     * Creates new form SampleIngestModuleIngestJobSettings
-     */
+    
+	
     public GoldenImageIngestModuleIngestJobSettingsPanel(GoldenImageModuleIngestJobSettings pSettings) {
 	    this.settings = pSettings;
-	    /*
-	    counter++;
-	    if(counter > 1){
-		    return;
-	    }
-	IngestJobSettings ingestJobSettings = new IngestJobSettings(GoldenImageGlobalSettingsPanel.class.getCanonicalName());
-	this.ingestJobSettingsPanel = new IngestJobSettingsPanel(ingestJobSettings);*/
-	    
+	   
         initComponents();
         customizeComponents(settings);
-	/*
-	IngestJobSettings ingestJobSettings = new IngestJobSettings(GoldenImageIngestModuleIngestJobSettingsPanel.class.getCanonicalName());
-        //showWarnings(ingestJobSettings);
-        this.ingestJobSettingsPanel = new IngestJobSettingsPanel(ingestJobSettings);*/
+	
     }
 
 	
@@ -119,8 +103,6 @@ public class GoldenImageIngestModuleIngestJobSettingsPanel extends IngestModuleI
 	cbGoldenImage.addActionListener((ActionEvent e) -> {
 		DataSourceCBWrapper dsTmpWrapper = (DataSourceCBWrapper)cbGoldenImage.getSelectedItem();
 	    settings.setSelectedDatasource(dsTmpWrapper.getContent());
-	    GIManager.getInstance().setGoldenImageContent(dsTmpWrapper.getContent());
-	    System.out.println(settings.getSelectedDatasource().getName()+" <<name");
 	});
 	
     }
