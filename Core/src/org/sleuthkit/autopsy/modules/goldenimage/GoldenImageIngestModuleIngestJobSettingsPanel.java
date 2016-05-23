@@ -96,13 +96,19 @@ public class GoldenImageIngestModuleIngestJobSettingsPanel extends IngestModuleI
 	}
 	
 	//Set first selected DS
-	DataSourceCBWrapper dsWrapper = (DataSourceCBWrapper)cbGoldenImage.getSelectedItem();
+	DataSourceCBWrapper dsWrapper = null;
+	if(cbGoldenImage != null)
+		dsWrapper = (DataSourceCBWrapper)cbGoldenImage.getSelectedItem();
+		
+	if(dsWrapper != null)
 	settings.setSelectedDatasource(dsWrapper.getContent());
 	
 	
 	cbGoldenImage.addActionListener((ActionEvent e) -> {
 		DataSourceCBWrapper dsTmpWrapper = (DataSourceCBWrapper)cbGoldenImage.getSelectedItem();
-	    settings.setSelectedDatasource(dsTmpWrapper.getContent());
+		
+		if(dsTmpWrapper != null)
+		settings.setSelectedDatasource(dsTmpWrapper.getContent());
 	});
 	
     }
