@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.sleuthkit.autopsy.casemodule;
 
 import java.util.LinkedList;
@@ -11,12 +6,11 @@ import org.openide.util.Exceptions;
 import org.sleuthkit.datamodel.SleuthkitJNI;
 import org.sleuthkit.datamodel.TskCoreException;
 
-/**
- *
- * @author root
- */
+
 class VolumeMetaData {
 
+    private static int AMOUNT_PARTITIONS = 4;
+    
     private String path;
     private long partitionNumber;
     private long offSet;
@@ -63,7 +57,7 @@ class VolumeMetaData {
             long handle = SleuthkitJNI.openImage(imageArray);
             long vsHandle = SleuthkitJNI.openVs(handle, 0);
 
-            for (int volumeIndex = 0; volumeIndex < 5; volumeIndex++) {
+            for (int volumeIndex = 0; volumeIndex < AMOUNT_PARTITIONS; volumeIndex++) {
                 VolumeMetaData volumeMetaData = new VolumeMetaData();
                 volumeMetaData.setPartitionNumber(volumeIndex);
 
