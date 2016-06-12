@@ -17,9 +17,6 @@ import org.sleuthkit.autopsy.casemodule.BitlockerDecryptionProvider.KeyType;
  */
 public class ConfigureBitlockerPanel extends JPanel {
 
-	//private String Password = "";
-	//private String BEKPath = "";
-	//private String RecoveryKey = "";
 	private BitlockerDecryptionProvider.KeyType keyType;
 	private String activeButton;
 	private boolean initialized = false;
@@ -181,7 +178,7 @@ public class ConfigureBitlockerPanel extends JPanel {
                         .addComponent(recoveryKeyTextfield, javax.swing.GroupLayout.PREFERRED_SIZE, 335, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(browseButton)))
-                .addGap(18, 18, 18))
+                .addGap(24, 24, 24))
             .addGroup(layeredPaneTitleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layeredPaneTitleLayout.createSequentialGroup()
                     .addGap(30, 30, 30)
@@ -198,16 +195,13 @@ public class ConfigureBitlockerPanel extends JPanel {
         layeredPaneTitleLayout.setVerticalGroup(
             layeredPaneTitleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layeredPaneTitleLayout.createSequentialGroup()
-                .addContainerGap(46, Short.MAX_VALUE)
-                .addGroup(layeredPaneTitleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layeredPaneTitleLayout.createSequentialGroup()
-                        .addComponent(errorLabel)
-                        .addGap(38, 38, 38))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layeredPaneTitleLayout.createSequentialGroup()
-                        .addGroup(layeredPaneTitleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(recoveryKeyTextfield, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(browseButton))
-                        .addGap(53, 53, 53))))
+                .addContainerGap(64, Short.MAX_VALUE)
+                .addGroup(layeredPaneTitleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(recoveryKeyTextfield, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(browseButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(errorLabel)
+                .addGap(20, 20, 20))
             .addGroup(layeredPaneTitleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layeredPaneTitleLayout.createSequentialGroup()
                     .addGap(11, 11, 11)
