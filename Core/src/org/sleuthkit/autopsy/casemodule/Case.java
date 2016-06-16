@@ -33,8 +33,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Collection;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,26 +57,26 @@ import org.openide.windows.WindowManager;
 import org.sleuthkit.autopsy.casemodule.CaseMetadata.CaseMetadataException;
 import org.sleuthkit.autopsy.casemodule.events.AddingDataSourceEvent;
 import org.sleuthkit.autopsy.casemodule.events.AddingDataSourceFailedEvent;
-import org.sleuthkit.autopsy.casemodule.events.DataSourceAddedEvent;
-import org.sleuthkit.autopsy.casemodule.events.ReportAddedEvent;
-import org.sleuthkit.autopsy.casemodule.services.Services;
-import org.sleuthkit.autopsy.core.UserPreferences;
-import org.sleuthkit.autopsy.corecomponentinterfaces.CoreComponentControl;
-import org.sleuthkit.autopsy.coreutils.FileUtil;
-import org.sleuthkit.autopsy.coreutils.Logger;
-import org.sleuthkit.autopsy.coreutils.MessageNotifyUtil;
-import org.sleuthkit.autopsy.coreutils.PlatformUtil;
-import org.sleuthkit.autopsy.coreutils.Version;
-import org.sleuthkit.autopsy.coreutils.NetworkUtils;
-import org.sleuthkit.autopsy.events.AutopsyEvent;
-import org.sleuthkit.autopsy.events.AutopsyEventException;
-import org.sleuthkit.autopsy.events.AutopsyEventPublisher;
 import org.sleuthkit.autopsy.casemodule.events.BlackBoardArtifactTagAddedEvent;
 import org.sleuthkit.autopsy.casemodule.events.BlackBoardArtifactTagDeletedEvent;
 import org.sleuthkit.autopsy.casemodule.events.ContentTagAddedEvent;
 import org.sleuthkit.autopsy.casemodule.events.ContentTagDeletedEvent;
+import org.sleuthkit.autopsy.casemodule.events.DataSourceAddedEvent;
+import org.sleuthkit.autopsy.casemodule.events.ReportAddedEvent;
+import org.sleuthkit.autopsy.casemodule.services.Services;
 import org.sleuthkit.autopsy.core.RuntimeProperties;
+import org.sleuthkit.autopsy.core.UserPreferences;
 import org.sleuthkit.autopsy.core.UserPreferencesException;
+import org.sleuthkit.autopsy.corecomponentinterfaces.CoreComponentControl;
+import org.sleuthkit.autopsy.coreutils.FileUtil;
+import org.sleuthkit.autopsy.coreutils.Logger;
+import org.sleuthkit.autopsy.coreutils.MessageNotifyUtil;
+import org.sleuthkit.autopsy.coreutils.NetworkUtils;
+import org.sleuthkit.autopsy.coreutils.PlatformUtil;
+import org.sleuthkit.autopsy.coreutils.Version;
+import org.sleuthkit.autopsy.events.AutopsyEvent;
+import org.sleuthkit.autopsy.events.AutopsyEventException;
+import org.sleuthkit.autopsy.events.AutopsyEventPublisher;
 import org.sleuthkit.autopsy.ingest.IngestJob;
 import org.sleuthkit.autopsy.ingest.IngestManager;
 import org.sleuthkit.datamodel.BlackboardArtifactTag;
@@ -114,7 +114,7 @@ public class Case implements SleuthkitCase.ErrorObserver {
                 int volume_id = resultSet.getInt(6);
 
                 DecryptionProvider decryptionProvider = getDecryptionProvider(decryptionProviderClassName, encryptedPath, volume_id, key, keyType, deviceId);
-                decryptionProvider.start();
+                decryptionProvider.start(path);
                 activeDecryptionProvider.add(decryptionProvider);
                 return true;
             }
@@ -126,7 +126,7 @@ public class Case implements SleuthkitCase.ErrorObserver {
 
     private static DecryptionProvider getDecryptionProvider(String decryptionProviderClassName, String encryptedPath, int volume_id, String key, int keyType, String deviceId) {
         DecryptionProvider emptyInstance = DecryptionProvider.getInstaceForClassString(decryptionProviderClassName);
-        VolumeMetaData volumeMetaData = VolumeMetaData.getVolumeMetaData(encryptedPath).get(volume_id - 1);
+        VolumeMetaData volumeMetaData = VolumeMetaData.getVolumeMetaData(encryptedPath).get(volume_id);
         return emptyInstance.decryptionProviderFactory(volumeMetaData, key, keyType, deviceId);
     }
 

@@ -37,7 +37,7 @@ public interface DecryptionProvider extends DataSourceProcessor {
     @Override
     public JPanel getPanel();
 
-    public void start();
+    public void start(String path);
 
     public void stop();
 
@@ -56,6 +56,9 @@ public interface DecryptionProvider extends DataSourceProcessor {
      * DecryptionProvider was found
      */
     public static DecryptionProvider getInstaceForClassString(String className) {
+        if(className.equals("class org.sleuthkit.autopsy.casemodule.BitlockerDecryptionProvider")){
+            return new BitlockerDecryptionProvider();
+        }
         for (DecryptionProvider decryptionProvider : Lookup.getDefault().lookupAll(DecryptionProvider.class)) {
             if (className.equals(decryptionProvider.getClass().toString())) {
                 return decryptionProvider;
