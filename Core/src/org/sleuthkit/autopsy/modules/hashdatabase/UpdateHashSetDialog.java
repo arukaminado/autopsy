@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.sleuthkit.autopsy.modules.hashdatabase;
 
 import java.awt.Dimension;
@@ -36,7 +31,7 @@ public class UpdateHashSetDialog extends javax.swing.JDialog {
      */
     public UpdateHashSetDialog(java.awt.Frame parent) {
         super(parent, false);
-	this.setMinimumSize(new Dimension(700, 200));
+        this.setMinimumSize(new Dimension(700, 200));
         initComponents();
         initHashSetGrid();
         this.dataDirectoryPath = this.dataDirectoryTextField.getText();
@@ -62,41 +57,22 @@ public class UpdateHashSetDialog extends javax.swing.JDialog {
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.weightx = 0;
-	gridBagConstraints.insets = new Insets(5, 20, 5, 20);
+        gridBagConstraints.insets = new Insets(5, 20, 5, 20);
         gridBagConstraints.fill = GridBagConstraints.NONE;
-        //initGrid(this.providerList, allPreparer.size(), 4);
-	
-	
-	//Add Headers
-	////Create Element Panel
-	JPanel providerHeaderPanel = new JPanel();
-	providerHeaderPanel.setLayout(new javax.swing.BoxLayout(providerHeaderPanel, javax.swing.BoxLayout.X_AXIS));
 
-	////Add Components
-	providerHeaderPanel.add(createLabel("full download"));
+        //Add Headers
+        ////Create Element Panel
+        JPanel providerHeaderPanel = new JPanel();
+        providerHeaderPanel.setLayout(new javax.swing.BoxLayout(providerHeaderPanel, javax.swing.BoxLayout.X_AXIS));
+
+        ////Add Components
+        providerHeaderPanel.add(createLabel("full download"));
         providerHeaderPanel.add(createLabel("Provider"));
         providerHeaderPanel.add(createLabel("Progress"));
         providerHeaderPanel.add(createLabel("state"));
-	
-	//Add Providers
+
         for (HashSetPreparer hashSetPreparer : allPreparer) {
-/*
-		HashSetUpdateOptions option = new HashSetUpdateOptions(hashSetPreparer);
-	    
-		//Create Element Panel
-		JPanel providerEntryPanel = new JPanel();
-		providerEntryPanel.setLayout(new javax.swing.BoxLayout(providerEntryPanel, javax.swing.BoxLayout.X_AXIS));
 
-		//Add Components
-		providerEntryPanel.add(option.getDownloadFullHashSetCheckBox());
-		providerEntryPanel.add(option.getNameLabel());
-		providerEntryPanel.add(option.getProgressbar());
-		providerEntryPanel.add(option.getSatusLabel());
-
-		providerList.add(providerEntryPanel);
-		hashSetOptions.add(option);*/
-	    
-		
             HashSetUpdateOptions option = new HashSetUpdateOptions(hashSetPreparer);
             this.providerList.add(option.getDownloadFullHashSetCheckBox(), gridBagConstraints.clone());
             gridBagConstraints.gridx++;
@@ -104,16 +80,15 @@ public class UpdateHashSetDialog extends javax.swing.JDialog {
             gridBagConstraints.gridx++;
             this.providerList.add(option.getProgressbar(), gridBagConstraints.clone());
             gridBagConstraints.gridx++;
-	    
-	    GridBagConstraints newConstraints = (GridBagConstraints)gridBagConstraints.clone();
-	    newConstraints.weightx = 1;
-	    newConstraints.fill = GridBagConstraints.HORIZONTAL;
+
+            GridBagConstraints newConstraints = (GridBagConstraints) gridBagConstraints.clone();
+            newConstraints.weightx = 1;
+            newConstraints.fill = GridBagConstraints.HORIZONTAL;
             this.providerList.add(option.getSatusLabel(), newConstraints);
-	    
-	    
+
             hashSetOptions.add(option);
             gridBagConstraints.gridy++;
-	    gridBagConstraints.gridx = 0;
+            gridBagConstraints.gridx = 0;
         }
     }
 
@@ -310,6 +285,7 @@ public class UpdateHashSetDialog extends javax.swing.JDialog {
         if (isExistingDirectory(this.dataDirectoryPath)) {
             hashSetOptions.stream().forEach((hashSetOption) -> {
                 new HashSetUpdateWorker(hashSetOption, this.dataDirectoryPath).execute();
+
             });
         } else {
             errorLabel.setText("Target directory does not exist. ");
@@ -342,11 +318,9 @@ public class UpdateHashSetDialog extends javax.swing.JDialog {
 
         @Override
         protected Object doInBackground() throws Exception {
-            if (!options.isDownloadFullHashSetEnabled()) {
+            if (options.isDownloadFullHashSetEnabled()) {
                 downloadFullHashSet();
-            } else {
-                downloadDeltaHashSet();
-            }
+            } 
             return null;
         }
 

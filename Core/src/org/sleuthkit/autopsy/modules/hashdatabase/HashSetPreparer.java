@@ -32,7 +32,9 @@ public abstract class HashSetPreparer {
     public abstract void extract() throws HashSetUpdateException;
 
     public void index() throws HashSetUpdateException {
-        HashDbManager.getInstance().indexHashDatabase(this.hashDatabase);
+        if (this.hashDatabase != null) {
+            HashDbManager.getInstance().indexHashDatabase(this.hashDatabase);
+        }
     }
 
     public abstract HashDbManager.HashDb.KnownFilesType getHashSetType();
@@ -44,13 +46,16 @@ public abstract class HashSetPreparer {
     public abstract String getName();
 
     public void addHashSetToDatabase() throws HashSetUpdateException {
-        
+
         try {
             if (!HashDbManager.getInstance().getAllHashSets().stream().anyMatch(hashDb -> {
                 return hashDb.getHashSetName().equals(getName());
             })) {
-                this.hashDatabase = HashDbManager.getInstance().addExistingHashDatabase(getName(), extractedFile, true, false, getHashSetType());
+                HashDbManager.getInstance().addExistingHashDatabase(getName(), extractedFile, true, false, getHashSetType());
             }
+            HashDbManager.getInstance().getAllHashSets().stream().filter((hdb) -> (hdb.getHashSetName().equals(getName()))).forEach((hdb) -> {
+                this.hashDatabase = hdb;
+            });
         } catch (HashDbManager.HashDbManagerException ex) {
             throw new HashSetUpdateException("Error while adding HashSet to Autopsy DB");
         }
